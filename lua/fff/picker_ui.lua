@@ -411,6 +411,7 @@ function M.create_ui()
     -- input window 不再需要 title，因为 title 统一放在 list window 上
 
     M.state.input_win = vim.api.nvim_open_win(M.state.input_buf, false, input_window_config)
+    if prompt_position == 'bottom' then
     -- added begin: add bottom border
         -- 创建边框 buffer
         local border_buf = vim.api.nvim_create_buf(false, true)
@@ -452,7 +453,8 @@ function M.create_ui()
         -- 保存边框相关状态
         M.state.input_border_buf = border_buf
         M.state.input_border_ns = ns_border
-    -- added eng
+        -- added eng
+    end
 
     M.setup_buffers()
     M.setup_windows()
@@ -724,11 +726,7 @@ function M.update_results_sync()
     M.state.items = results
     M.state.filtered_items = results
 
-    if prompt_position == 'bottom' then
-        M.state.cursor = #results > 0 and #results or 1
-    else
-        M.state.cursor = 1
-    end
+    M.state.cursor = 1
 
     M.render_debounced()
 end
@@ -790,14 +788,8 @@ function M.render_list()
     local prompt_position = get_prompt_position()
     local cursor_line = 0
     if #items > 0 then
-        -- if prompt_position == 'bottom' then
-        --     empty_lines_needed = win_height - display_count
-        --     cursor_line = empty_lines_needed + M.state.cursor
-        -- else
-        --    cursor_line = M.state.cursor
-        --end
-        --cursor_line = math.max(1, math.min(cursor_line, win_height))
-        cursor_line = 1
+        cursor_line = M.state.cursor
+        cursor_line = math.max(1, math.min(cursor_line, win_height))
     end
 
     local padded_lines = {}
