@@ -187,8 +187,8 @@ end
 --- @return string, string Icon and highlight group name
 function M.get_icon_display(filename, extension, is_directory)
   local icon, color = M.get_icon(filename, extension, is_directory)
-  local hl_group = M.create_icon_highlight(color)
-  return icon, hl_group
+  --local hl_group = M.create_icon_highlight(color)
+  return icon, "LineNr"
 end
 
 --- Create or get cached highlight group for icon color
