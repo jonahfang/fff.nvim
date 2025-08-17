@@ -359,7 +359,7 @@ function M.create_ui()
         style = 'minimal',
     }
 
-    local title = ' ' .. (M.state.config.title or 'FFFiles') .. ' '
+    local title = 'FFF files'
     -- 当 prompt 在 top 时，title 放在 list window 上；当 prompt 在 bottom 时，title 也在 list window 上
     list_window_config.title = title
     list_window_config.title_pos = 'center'
