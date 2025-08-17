@@ -705,7 +705,7 @@ function M.render_debounced()
 end
 
 local function shrink_path(path, max_width)
-  if #path <= max_width then return path end
+  --if #path <= max_width then return path end
 
   local segments = {}
   for segment in path:gmatch('[^/]+') do
@@ -716,27 +716,7 @@ local function shrink_path(path, max_width)
     return path -- Can't shrink further
   end
 
-  local first = segments[1]
-  local last = segments[#segments]
-  local ellipsis = '../'
-
-  for middle_count = #segments - 2, 1, -1 do
-    local middle_parts = {}
-    local start_idx = 2
-    local end_idx = math.min(start_idx + middle_count - 1, #segments - 1)
-
-    for i = start_idx, end_idx do
-      table.insert(middle_parts, segments[i])
-    end
-
-    local middle = table.concat(middle_parts, '/')
-    if middle_count < #segments - 2 then middle = middle .. ellipsis end
-
-    local result = first .. '/' .. middle .. '/' .. last
-    if #result <= max_width then return result end
-  end
-
-  return first .. '/' .. ellipsis .. last
+  return segments[#segments-2] .. '/' .. segments[#segments-1] .. '/' .. segments[#segments]
 end
 
 local function format_file_display(item, max_width)
@@ -906,7 +886,7 @@ function M.render_list()
           vim.api.nvim_buf_add_highlight(
             M.state.list_buf,
             M.state.ns_id,
-            'Comment',
+            'AlphabetPath',
             line_idx - 1,
             prefix_len,
             prefix_len + #dir_path
