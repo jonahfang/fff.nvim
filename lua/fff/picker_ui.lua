@@ -360,7 +360,6 @@ function M.create_ui()
     }
 
     local title = 'FFF files'
-    -- 当 prompt 在 top 时，title 放在 list window 上；当 prompt 在 bottom 时，title 也在 list window 上
     list_window_config.title = title
     list_window_config.title_pos = 'center'
 
@@ -717,7 +716,8 @@ function M.update_results_sync()
         dynamic_max_results,
         M.state.config.max_threads,
         M.state.current_file_cache,
-        prompt_position == 'bottom'
+        --prompt_position == 'bottom'
+        false
     )
 
     -- because the actual files could be different even with same count
@@ -790,21 +790,22 @@ function M.render_list()
     local prompt_position = get_prompt_position()
     local cursor_line = 0
     if #items > 0 then
-        if prompt_position == 'bottom' then
-            empty_lines_needed = win_height - display_count
-            cursor_line = empty_lines_needed + M.state.cursor
-        else
-            cursor_line = M.state.cursor
-        end
-        cursor_line = math.max(1, math.min(cursor_line, win_height))
+        -- if prompt_position == 'bottom' then
+        --     empty_lines_needed = win_height - display_count
+        --     cursor_line = empty_lines_needed + M.state.cursor
+        -- else
+        --    cursor_line = M.state.cursor
+        --end
+        --cursor_line = math.max(1, math.min(cursor_line, win_height))
+        cursor_line = 1
     end
 
     local padded_lines = {}
-    if prompt_position == 'bottom' then
-        for _ = 1, empty_lines_needed do
-            table.insert(padded_lines, string.rep(' ', win_width + 5))
-        end
-    end
+    -- if prompt_position == 'bottom' then
+    --     for _ = 1, empty_lines_needed do
+    --         table.insert(padded_lines, string.rep(' ', win_width + 5))
+    --     end
+    -- end
 
     local icon_data = {}
     local path_data = {}
