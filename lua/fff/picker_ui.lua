@@ -72,7 +72,7 @@ end
 --- @return table Layout configuration
 function M.calculate_layout_dimensions(cfg)
     local BORDER_SIZE = 2
-    local INPUT_BORDER_SIZE = 0  -- input window 没有边框
+    local INPUT_BORDER_SIZE = 1  -- input window 没有边框
     local PROMPT_HEIGHT = 1      -- input window 没有边框，所以高度只需要1行
     local SEPARATOR_WIDTH = 1
     local SEPARATOR_HEIGHT = 1
@@ -88,7 +88,7 @@ function M.calculate_layout_dimensions(cfg)
     local total_width = math.max(0, cfg.total_width - BORDER_SIZE)
     -- 对于 top prompt position，需要为 input window 预留空间（但不需要边框空间）
     local total_height = math.max(0, cfg.total_height - BORDER_SIZE -
-        (cfg.prompt_position == 'top' and PROMPT_HEIGHT or 0))
+        (cfg.prompt_position == 'top' and PROMPT_HEIGHT + INPUT_BORDER_SIZE or 0))
 
     -- Section 2: Calculate dimensions based on preview position
     if cfg.preview_position == 'left' then
@@ -172,7 +172,7 @@ function M.calculate_layout_dimensions(cfg)
     if cfg.preview_position == 'left' or cfg.preview_position == 'right' then
         if cfg.prompt_position == 'top' then
             layout.input_row = cfg.start_row  -- input window 没有边框，可以从 start_row 开始
-            layout.list_row = cfg.start_row + PROMPT_HEIGHT + 1  -- 为 input 预留空间
+            layout.list_row = cfg.start_row + PROMPT_HEIGHT  -- 为 input 预留空间
         else
             layout.list_row = cfg.start_row + 1
             layout.input_row = cfg.start_row + cfg.total_height - PROMPT_HEIGHT + 1 -- 底部位置，无需考虑边框
@@ -191,7 +191,7 @@ function M.calculate_layout_dimensions(cfg)
         local list_start_row = layout.list_start_row
         if cfg.prompt_position == 'top' then
             layout.input_row = cfg.start_row  -- input window 在最顶部，没有边框
-            layout.list_row = list_start_row + PROMPT_HEIGHT  -- 为 input 预留空间
+            layout.list_row = list_start_row
             layout.list_height = math.max(0, layout.list_height - PROMPT_HEIGHT)
         else
             layout.list_row = list_start_row
@@ -359,9 +359,10 @@ function M.create_ui()
         style = 'minimal',
     }
 
-    local title = 'FFF files'
-    list_window_config.title = title
-    list_window_config.title_pos = 'center'
+    if prompt_position == 'bottom' then
+        list_window_config.title = 'FFF files'
+        list_window_config.title_pos = 'center'
+    end
 
     M.state.list_win = vim.api.nvim_open_win(M.state.list_buf, false, list_window_config)
 
@@ -411,8 +412,50 @@ function M.create_ui()
     -- input window 不再需要 title，因为 title 统一放在 list window 上
 
     M.state.input_win = vim.api.nvim_open_win(M.state.input_buf, false, input_window_config)
+    if prompt_position == 'top' then
+        -- 创建边框 buffer
+        local border_buf = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
+
+        -- 设置边框内容，包含左右角
+        local border_width = layout.input_width + 2  -- +2 for left and right corners
+        local left_corner = '└'   -- 左下角
+        local right_corner = '┘'  -- 右下角
+        local horizontal_line = string.rep('─', layout.input_width)
+        local border_line = left_corner .. horizontal_line .. right_corner
+
+        vim.api.nvim_buf_set_lines(border_buf, 0, -1, false, { border_line })
+        vim.api.nvim_buf_set_option(border_buf, 'modifiable', false)
+
+        -- 创建边框窗口，位置需要向左偏移1个字符来容纳左角
+        M.state.input_border_win = vim.api.nvim_open_win(border_buf, false, {
+            relative = 'editor',
+            width = border_width,
+            height = 1,
+            col = layout.input_col,      -- 向左偏移1个字符
+            row = layout.input_row - 1,  -- 在 input window 下方
+            border = 'none',
+            style = 'minimal',
+        })
+
+        -- 设置边框窗口样式
+        vim.api.nvim_win_set_option(M.state.input_border_win, 'winhighlight', 'Normal:FloatBorder')
+
+        -- 可选：为不同部分设置不同的高亮
+        local ns_border = vim.api.nvim_create_namespace('fff_input_border')
+        -- 左角高亮
+        vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, 0, 1)
+        -- 中间横线高亮
+        vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, 1, border_width - 1)
+        -- 右角高亮
+        vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, border_width - 1, border_width)
+
+        -- 保存边框相关状态
+        M.state.input_border_buf = border_buf
+        M.state.input_border_ns = ns_border
+    end
     if prompt_position == 'bottom' then
-    -- added begin: add bottom border
+        -- added begin: add bottom border
         -- 创建边框 buffer
         local border_buf = vim.api.nvim_create_buf(false, true)
         vim.api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
