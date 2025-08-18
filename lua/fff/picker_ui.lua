@@ -1216,6 +1216,10 @@ function M.close()
         vim.api.nvim_win_close(M.state.list_border_win, true)
         M.state.list_border_win = nil
     end
+    if M.state.title_win and vim.api.nvim_win_is_valid(M.state.title_win) then
+        vim.api.nvim_win_close(M.state.title_win, true)
+        M.state.title_win = nil
+    end
 
     M.state.input_win = nil
     M.state.list_win = nil
