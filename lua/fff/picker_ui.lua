@@ -415,11 +415,7 @@ function M.create_ui()
         vim.api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
 
         local border_width = layout.input_width + 2  -- +2 for left and right corners
-        local left_corner = '┌'
-        local right_corner = '┐'
-        local horizontal_line = string.rep('─', layout.input_width)
         local title = "FFF files"
-
         vim.api.nvim_buf_set_option(border_buf, 'modifiable', false)
 
         M.state.input_border_win = vim.api.nvim_open_win(border_buf, false, {
