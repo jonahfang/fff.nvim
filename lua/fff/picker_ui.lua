@@ -404,24 +404,48 @@ function M.create_ui()
         height = 1,
         col = layout.input_col + 1,
         row = layout.input_row,
-        border = "single",
-        title = 'FFF files',
-        title_pos = 'center',
+        border = "none",
         style = 'minimal',
     }
 
     M.state.input_win = vim.api.nvim_open_win(M.state.input_buf, false, input_window_config)
     if prompt_position == 'top' then
+        -- == border win of top  (top and two sides) ==
+        local border_buf = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
+
+        local border_width = layout.input_width + 2  -- +2 for left and right corners
+        local title = "FFF files"
+        vim.api.nvim_buf_set_option(border_buf, 'modifiable', false)
+
+        M.state.input_border_win = vim.api.nvim_open_win(border_buf, false, {
+            relative = 'editor',
+            width = border_width,
+            height = 1,
+            col = layout.input_col - 1,
+            row = layout.input_row - 1,
+            border = 'single',
+            title = title,
+            title_pos = 'center',
+            style = 'minimal',
+        })
+
+        local ns_border = vim.api.nvim_create_namespace('fff_input_border')
+        vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, 0, 1)
+        vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, border_width - 1, border_width)
+
+        M.state.input_border_buf = border_buf
+        M.state.input_border_ns = ns_border
+
         -- == border win of list (bottom and two sides) ==
         local border_buf = vim.api.nvim_create_buf(false, true)
         vim.api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
         vim.api.nvim_buf_set_option(border_buf, 'modifiable', false)
 
-        local border_width = layout.input_width + 2
         M.state.list_border_win = vim.api.nvim_open_win(border_buf, false, {
             relative = 'editor',
             width = border_width,
-            height = layout.list_height+1,
+            height = layout.list_height + 3,
             col = layout.list_col - 2,
             row = layout.list_row,
             border = 'none',
@@ -431,6 +455,38 @@ function M.create_ui()
 
         vim.api.nvim_win_set_option(M.state.list_border_win, 'winhighlight', 'Normal:FloatBorder')
         M.state.list_border_buf = border_buf
+    end
+    if prompt_position == 'bottom' then
+        local border_buf = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
+
+        local border_width = layout.input_width + 2  -- +2 for left and right corners
+        local left_corner = '└'
+        local right_corner = '┘'
+        local horizontal_line = string.rep('─', layout.input_width)
+        local border_line = left_corner .. horizontal_line .. right_corner
+
+        vim.api.nvim_buf_set_lines(border_buf, 0, -1, false, { border_line })
+        vim.api.nvim_buf_set_option(border_buf, 'modifiable', false)
+
+        M.state.input_border_win = vim.api.nvim_open_win(border_buf, false, {
+            relative = 'editor',
+            width = border_width,
+            height = 1,
+            col = layout.input_col,
+            row = layout.input_row + 1,
+            border = 'none',
+            style = 'minimal',
+        })
+
+        vim.api.nvim_win_set_option(M.state.input_border_win, 'winhighlight', 'Normal:FloatBorder')
+        local ns_border = vim.api.nvim_create_namespace('fff_input_border')
+        vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, 0, 1)
+        vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, 1, border_width - 1)
+        vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, border_width - 1, border_width)
+
+        M.state.input_border_buf = border_buf
+        M.state.input_border_ns = ns_border
     end
 
     M.setup_buffers()
@@ -1184,6 +1240,10 @@ function M.close()
         end
     end
 
+    if M.state.input_border_win and vim.api.nvim_win_is_valid(M.state.input_border_win) then
+        vim.api.nvim_win_close(M.state.input_border_win, true)
+        M.state.input_border_win = nil
+    end
     if M.state.list_border_win and vim.api.nvim_win_is_valid(M.state.list_border_win) then
         vim.api.nvim_win_close(M.state.list_border_win, true)
         M.state.list_border_win = nil
