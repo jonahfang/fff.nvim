@@ -72,7 +72,7 @@ end
 --- @return table Layout configuration
 function M.calculate_layout_dimensions(cfg)
     local BORDER_SIZE = 2
-    local INPUT_BORDER_SIZE = 1  -- input window 没有边框
+    local INPUT_BORDER_SIZE = 0  -- input window 没有边框
     local PROMPT_HEIGHT = 1      -- input window 没有边框，所以高度只需要1行
     local SEPARATOR_WIDTH = 1
     local SEPARATOR_HEIGHT = 1
@@ -88,7 +88,7 @@ function M.calculate_layout_dimensions(cfg)
     local total_width = math.max(0, cfg.total_width - BORDER_SIZE)
     -- 对于 top prompt position，需要为 input window 预留空间（但不需要边框空间）
     local total_height = math.max(0, cfg.total_height - BORDER_SIZE -
-        (cfg.prompt_position == 'top' and PROMPT_HEIGHT + INPUT_BORDER_SIZE or 0))
+        (cfg.prompt_position == 'top' and PROMPT_HEIGHT or 0))
 
     -- Section 2: Calculate dimensions based on preview position
     if cfg.preview_position == 'left' then
@@ -191,7 +191,7 @@ function M.calculate_layout_dimensions(cfg)
         local list_start_row = layout.list_start_row
         if cfg.prompt_position == 'top' then
             layout.input_row = cfg.start_row  -- input window 在最顶部，没有边框
-            layout.list_row = list_start_row
+            layout.list_row = cfg.start_row + PROMPT_HEIGHT  -- 为 input 预留空间
             layout.list_height = math.max(0, layout.list_height - PROMPT_HEIGHT)
         else
             layout.list_row = list_start_row
@@ -355,7 +355,7 @@ function M.create_ui()
         height = layout.list_height,
         col = layout.list_col,
         row = layout.list_row,
-        border = "single",
+        border = "none",
         style = 'minimal',
     }
 
@@ -413,14 +413,13 @@ function M.create_ui()
 
     M.state.input_win = vim.api.nvim_open_win(M.state.input_buf, false, input_window_config)
     if prompt_position == 'top' then
-        -- 创建边框 buffer
         local border_buf = vim.api.nvim_create_buf(false, true)
         vim.api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
 
         -- 设置边框内容，包含左右角
         local border_width = layout.input_width + 2  -- +2 for left and right corners
-        local left_corner = '└'   -- 左下角
-        local right_corner = '┘'  -- 右下角
+        local left_corner = '┌'   -- 左上角
+        local right_corner = '┐'  -- 右上角
         local horizontal_line = string.rep('─', layout.input_width)
         local border_line = left_corner .. horizontal_line .. right_corner
 
@@ -432,7 +431,7 @@ function M.create_ui()
             relative = 'editor',
             width = border_width,
             height = 1,
-            col = layout.input_col,      -- 向左偏移1个字符
+            col = layout.input_col - 1 ,      -- 向左偏移1个字符
             row = layout.input_row - 1,  -- 在 input window 下方
             border = 'none',
             style = 'minimal',
@@ -453,6 +452,44 @@ function M.create_ui()
         -- 保存边框相关状态
         M.state.input_border_buf = border_buf
         M.state.input_border_ns = ns_border
+
+        -- 添加边框效果
+        local border_buf = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
+
+        -- 创建边框内容
+        local border_lines = {}
+        local border_width = layout.list_width + 2  -- +2 for left and right borders
+        local top_border = '┌' .. string.rep('─', layout.list_width) .. '┐'
+        local bottom_border = '└' .. string.rep('─', layout.list_width) .. '┘'
+        local side_border = '│'
+
+        table.insert(border_lines, top_border)
+        for _ = 1, layout.list_height do
+            table.insert(border_lines, side_border .. string.rep(' ', layout.list_width) .. side_border)
+        end
+        table.insert(border_lines, bottom_border)
+
+        vim.api.nvim_buf_set_lines(border_buf, 0, -1, false, border_lines)
+        vim.api.nvim_buf_set_option(border_buf, 'modifiable', false)
+
+        -- 创建边框窗口
+        M.state.list_border_win = vim.api.nvim_open_win(border_buf, false, {
+            relative = 'editor',
+            width = border_width,
+            height = layout.list_height + 2,  -- +2 for top and bottom borders
+            col = layout.list_col - 1,        -- 向左偏移1个字符
+            row = layout.list_row - 1,        -- 向上偏移1行
+            border = 'none',
+            style = 'minimal',
+            zindex = 1,  -- 确保边框窗口在列表窗口下方
+        })
+
+        -- 设置边框窗口样式
+        vim.api.nvim_win_set_option(M.state.list_border_win, 'winhighlight', 'Normal:FloatBorder')
+
+        -- 保存边框相关状态
+        M.state.list_border_buf = border_buf
     end
     if prompt_position == 'bottom' then
         -- added begin: add bottom border
@@ -1224,6 +1261,7 @@ function M.close()
         M.state.input_win,
         M.state.list_win,
         M.state.preview_win,
+        M.state.list_border_win,  -- 添加边框窗口
     }
 
     if M.state.file_info_win then table.insert(windows, M.state.file_info_win) end
@@ -1252,6 +1290,10 @@ function M.close()
     if M.state.input_border_win and vim.api.nvim_win_is_valid(M.state.input_border_win) then
         vim.api.nvim_win_close(M.state.input_border_win, true)
         M.state.input_border_win = nil
+    end
+    if M.state.list_border_win and vim.api.nvim_win_is_valid(M.state.list_border_win) then
+        vim.api.nvim_win_close(M.state.list_border_win, true)
+        M.state.list_border_win = nil
     end
 
     M.state.input_win = nil
