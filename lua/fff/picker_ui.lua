@@ -387,9 +387,9 @@ function M.create_ui()
         M.state.preview_win = vim.api.nvim_open_win(M.state.preview_buf, false, {
             relative = 'editor',
             width = layout.preview.width,
-            height = layout.preview.height,
+            height = layout.preview.height+ 1,
             col = layout.preview.col,
-            row = layout.preview.row,
+            row = layout.preview.row + 1,
             border = 'single',
             style = 'minimal',
             title = ' Preview ',
@@ -1212,13 +1212,13 @@ function M.close()
         end
     end
 
-    if M.state.list_border_win and vim.api.nvim_win_is_valid(M.state.list_border_win) then
-        vim.api.nvim_win_close(M.state.list_border_win, true)
-        M.state.list_border_win = nil
-    end
     if M.state.title_win and vim.api.nvim_win_is_valid(M.state.title_win) then
         vim.api.nvim_win_close(M.state.title_win, true)
         M.state.title_win = nil
+    end
+    if M.state.list_border_win and vim.api.nvim_win_is_valid(M.state.list_border_win) then
+        vim.api.nvim_win_close(M.state.list_border_win, true)
+        M.state.list_border_win = nil
     end
 
     M.state.input_win = nil
