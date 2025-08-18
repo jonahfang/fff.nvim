@@ -410,6 +410,7 @@ function M.create_ui()
 
     M.state.input_win = vim.api.nvim_open_win(M.state.input_buf, false, input_window_config)
     if prompt_position == 'top' then
+        -- == list border win ==
         local border_width = layout.input_width + 2  -- +2 for left and right corners
         local border_buf = vim.api.nvim_create_buf(false, true)
         vim.api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
@@ -1157,6 +1158,7 @@ function M.close()
         M.state.input_win,
         M.state.list_win,
         M.state.preview_win,
+        M.state.title_win,
         M.state.list_border_win,  -- 添加边框窗口
     }
 
@@ -1170,6 +1172,7 @@ function M.close()
         M.state.input_buf,
         M.state.list_buf,
         M.state.file_info_buf,
+        M.state.title_buf,
     }
     if M.enabled_preview() then buffers[#buffers + 1] = M.state.preview_buf end
 
@@ -1203,6 +1206,9 @@ function M.close()
     M.state.ns_id = nil
     M.state.last_preview_file = nil
     M.state.current_file_cache = nil
+
+    M.state.title_win = nil
+    M.state.title_buf = nil
 
     if M.state.search_timer then
         M.state.search_timer:stop()
