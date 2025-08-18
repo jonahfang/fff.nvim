@@ -416,12 +416,25 @@ function M.create_ui()
         local border_buf = vim.api.nvim_create_buf(false, true)
         vim.api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
 
-        -- 设置边框内容，包含左右角
+        -- 设置边框内容，包含左右角和标题
         local border_width = layout.input_width + 2  -- +2 for left and right corners
         local left_corner = '┌'   -- 左上角
         local right_corner = '┐'  -- 右上角
         local horizontal_line = string.rep('─', layout.input_width)
-        local border_line = left_corner .. horizontal_line .. right_corner
+
+        -- Calculate positions for the title
+        local title = "FFF files"
+        local title_length = #title
+        local line_length = border_width - 2  -- without corners
+        local title_start = math.floor((line_length - title_length) / 2) + 1
+
+        -- Create the border line with title
+        local border_line = left_corner
+        border_line = border_line
+        .. string.rep('─', title_start)
+        .. title
+        .. string.rep('─', border_width - title_start - #title)
+        .. right_corner
 
         vim.api.nvim_buf_set_lines(border_buf, 0, -1, false, { border_line })
         vim.api.nvim_buf_set_option(border_buf, 'modifiable', false)
@@ -430,24 +443,27 @@ function M.create_ui()
         M.state.input_border_win = vim.api.nvim_open_win(border_buf, false, {
             relative = 'editor',
             width = border_width,
+            width = border_width,
             height = 1,
-            col = layout.input_col - 1 ,      -- 向左偏移1个字符
-            row = layout.input_row - 1,  -- 在 input window 下方
-            border = 'none',
+            col = layout.input_col - 1,      -- 向左偏移1个字符
+            row = layout.input_row - 1,       -- 在 input window 上方
+            --border = 'none',
+            border = 'single',
+            title = title,
+            title_pos = 'center',
             style = 'minimal',
         })
 
         -- 设置边框窗口样式
         vim.api.nvim_win_set_option(M.state.input_border_win, 'winhighlight', 'Normal:FloatBorder')
 
-        -- 可选：为不同部分设置不同的高亮
+        -- 高亮标题部分
         local ns_border = vim.api.nvim_create_namespace('fff_input_border')
         -- 左角高亮
         vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, 0, 1)
-        -- 中间横线高亮
-        vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, 1, border_width - 1)
         -- 右角高亮
         vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, border_width - 1, border_width)
+        vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatTitle', 0, title_start + 1, title_start + 1 + #title)
 
         -- 保存边框相关状态
         M.state.input_border_buf = border_buf
