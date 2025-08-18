@@ -1145,7 +1145,7 @@ function M.update_status(progress)
     vim.api.nvim_buf_clear_namespace(M.state.input_buf, M.state.ns_id, 0, -1)
 
     local win_width = vim.api.nvim_win_get_width(M.state.input_win)
-    local available_width = win_width  -- input window 没有边框，所以可用宽度就是窗口宽度
+    local available_width = win_width - 1
     local status_len = #status_info
 
     local col_position = available_width - status_len
