@@ -430,7 +430,7 @@ function M.create_ui()
             style = 'minimal',
         })
 
-        vim.api.nvim_win_set_option(M.state.input_border_win, 'winhighlight', 'Normal:FloatBorder')
+        --vim.api.nvim_win_set_option(M.state.input_border_win, 'winhighlight', 'Normal:FloatBorder')
 
         local ns_border = vim.api.nvim_create_namespace('fff_input_border')
         vim.api.nvim_buf_add_highlight(border_buf, ns_border, 'FloatBorder', 0, 0, 1)
@@ -442,28 +442,14 @@ function M.create_ui()
         -- == border win of list (bottom and two sides) ==
         local border_buf = vim.api.nvim_create_buf(false, true)
         vim.api.nvim_buf_set_option(border_buf, 'bufhidden', 'wipe')
-
-        local border_lines = {}
-        local border_width = layout.list_width + 2  -- +2 for left and right borders
-        local top_border = '┌' .. string.rep('─', layout.list_width) .. '┐'
-        local bottom_border = '└' .. string.rep('─', layout.list_width) .. '┘'
-        local side_border = '│'
-
-        table.insert(border_lines, top_border)
-        for _ = 1, layout.list_height do
-            table.insert(border_lines, side_border .. string.rep(' ', layout.list_width) .. side_border)
-        end
-        table.insert(border_lines, bottom_border)
-
-        vim.api.nvim_buf_set_lines(border_buf, 0, -1, false, border_lines)
         vim.api.nvim_buf_set_option(border_buf, 'modifiable', false)
 
         M.state.list_border_win = vim.api.nvim_open_win(border_buf, false, {
             relative = 'editor',
             width = border_width,
-            height = layout.list_height + 2,
-            col = layout.list_col - 1,
-            row = layout.list_row - 1,
+            height = layout.list_height + 3,
+            col = layout.list_col - 2,
+            row = layout.list_row,
             border = 'none',
             style = 'minimal',
             zindex = 1,
