@@ -812,7 +812,7 @@ function M.render_list()
         icon_data[i] = { icon, icon_hl_group }
 
         local frecency = ''
-        if debug_enabled then
+        --if debug_enabled then
             local total_frecency = (item.total_frecency_score or 0)
             local access_frecency = (item.access_frecency_score or 0)
             local mod_frecency = (item.modification_frecency_score or 0)
@@ -830,7 +830,7 @@ function M.render_list()
                 end
                 frecency = string.format(' %s%d', indicator, total_frecency)
             end
-        end
+        -- end
 
         local current_indicator = item.is_current_file and ' (current)' or ''
         local available_width = math.max(max_path_width - #icon - 1 - #frecency - #current_indicator, 40)
@@ -901,7 +901,7 @@ function M.render_list()
                 end
 
                 -- Frecency highlighting
-                if debug_enabled then
+                --if debug_enabled then
                     local star_start, star_end = line_content:find('⭐%d+')
                     if star_start then
                         vim.api.nvim_buf_add_highlight(
@@ -913,7 +913,7 @@ function M.render_list()
                             star_end
                         )
                     end
-                end
+                --end
 
                 local icon_match = line_content:match('^%S+')
                 if icon_match and #filename > 0 and #dir_path > 0 then
