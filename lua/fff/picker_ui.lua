@@ -402,7 +402,7 @@ function M.create_ui()
         relative = 'editor',
         width = layout.input_width,
         height = 1,
-        col = layout.input_col + 1,
+        col = layout.input_col,
         row = layout.input_row,
         border = "none",
         style = 'minimal',
@@ -423,7 +423,9 @@ function M.create_ui()
             row = layout.input_row,
             border = 'none',
             style = 'minimal',
-            zindex = 1,
+            title = ' FFF files ',
+            title_pos = 'center',
+            zindex = 2,
         })
 
         vim.api.nvim_win_set_option(M.state.list_border_win, 'winhighlight', 'Normal:FloatBorder')
