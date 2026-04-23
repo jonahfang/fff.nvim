@@ -225,9 +225,9 @@ function M.setup_global_autocmds()
 
             if not ok then
                 vim.schedule(function()
-                     vim.notify('FFF: Failed to track file access: ' .. tostring(track_err), vim.log.levels.ERROR)
+                   vim.notify('FFF: Failed to track file access: ' .. tostring(track_err), vim.log.levels.ERROR)
                 end)
-             end
+            end
           end)
         end)
       end,
