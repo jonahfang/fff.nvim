@@ -410,32 +410,7 @@ function M.create_ui()
 
     M.state.input_win = vim.api.nvim_open_win(M.state.input_buf, false, input_window_config)
     if prompt_position == 'top' then
-        -- == title win ==
-        local title_buf = vim.api.nvim_create_buf(false, true)
-        vim.api.nvim_buf_set_option(title_buf, 'bufhidden', 'wipe')
-        vim.api.nvim_buf_set_option(title_buf, 'modifiable', true)
-
-        local title_text = "FFF files"
-        local title_width = layout.input_width
-        local padding = math.max(0, math.floor((title_width - #title_text) / 2))
-        local centered_title = string.rep(" ", padding) .. title_text .. string.rep(" ", title_width - padding - #title_text)
-
-        vim.api.nvim_buf_set_lines(title_buf, 0, -1, false, { centered_title })
-        vim.api.nvim_buf_set_option(title_buf, 'modifiable', false)
-
-        M.state.title_win = vim.api.nvim_open_win(title_buf, false, {
-            relative = 'editor',
-            width = title_width,
-            height = 1,
-            col = layout.input_col,
-            row = layout.input_row - 1,
-            border = 'none',
-            style = 'minimal',
-            zindex = 3,
-        })
-        vim.api.nvim_win_set_option(M.state.title_win, 'winhighlight', 'Normal:TelescopeResultsTitle')
-        M.state.title_buf = title_buf
-
+       
         -- == list border win ==
         local border_width = layout.input_width + 2  -- +2 for left and right corners
         local border_buf = vim.api.nvim_create_buf(false, true)
@@ -445,7 +420,7 @@ function M.create_ui()
         M.state.list_border_win = vim.api.nvim_open_win(border_buf, false, {
             relative = 'editor',
             width = border_width,
-            height = layout.list_height + 3,
+            height = layout.list_height + 1,
             col = layout.list_col - 1,
             row = layout.input_row - 1,
             border = 'single',
