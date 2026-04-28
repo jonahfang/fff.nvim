@@ -446,7 +446,7 @@ function M.create_ui()
             relative = 'editor',
             width = border_width,
             height = layout.list_height + 3,
-            col = layout.list_col - 2,
+            col = layout.list_col - 1,
             row = layout.input_row,
             border = 'none',
             style = 'minimal',
