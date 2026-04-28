@@ -932,12 +932,12 @@ function M.render_list()
                 local border_hl = nil
 
                 if item.git_status and git_utils.should_show_border(item.git_status) then
-                    border_char = git_utils.get_border_char(item.git_status)
-                    if is_cursor_line then
-                        border_hl = git_utils.get_border_highlight_selected(item.git_status)
-                    else
+                    border_char = git_utils.get_border_kkkkkkchar(item.git_status)
+                    --if is_cursor_line then
+                    --    border_hl = git_utils.get_border_highlight_selected(item.git_status)
+                    --else
                         border_hl = git_utils.get_border_highlight(item.git_status)
-                    end
+                    --end
                 end
 
                 local final_border_hl = border_hl ~= '' and border_hl
